@@ -226,3 +226,22 @@ PROGRESS.md「11-28 凌晨」交接段。
 **v6 修复（00:20）**：原子快照复测证明 -0.28m 跳变真实（非缓存假象），spectator 无原生
 attach 接口 → 相机写入解耦：独立 Client + 100Hz 推送线程 + HUD 分离连接，消除 RPC 延迟
 空窗。验收：原子快照前向误差 std <0.03m（改前 0.089m）。
+
+## 7. v8 之后仍偶发抖动的隐藏根因：VSync 帧时间量化（2026-11-28 01:05）
+
+**现象**：跟随相机已是 v8（单写手 + snapshot 单源 + 一 tick 外推 + HUD 关闭），静止/短时观察零抖动，但长时间行驶每隔约 1 秒仍有 ±0.1~0.22m 的前后硬跳。
+
+**诊断方法**（只读，不改任何 actor）：容器侧每 tick 取 `snap.find(ego.id)` 与 `snap.find(spectator.id)`，算相机相对车的前向距离 `along`。结果：
+- 47 次 >4cm 跳变集中在两段，其余 tick 精确 9.0005m；
+- 跳变时车速恒定 8.25m/s、`dv=0`（排除物理/加减速/HUD/线程竞争）；
+- dt 从稳定 0.0333s 跳到 0.04~0.05s，跳变严格与 dt 尖峰同步。
+
+**模型**：相机位移 = `v*(2*dt[i-1]-dt[i-2])`（set_transform 延迟一 tick 生效的必然结果），车位移 = `v*dt[i]`。dt 恒定时两者相等 → 零抖；dt 量化跳变时失配 → 硬跳。
+
+**根因**：`bUseVSync=True` + 30fps 上限 + 59.96Hz 显示器 = 帧时间被量化成 33ms（2 个 VSync）/ 50ms（丢 1 个 VSync）两档乱跳。
+
+**修复**：`bUseVSync=False`，保留 `FrameRateLimit=30` 由定时器控制。
+- 新启动：`scripts/amdvlk_carla_go.sh` 已默认关闭 VSync；
+- 正在跑的窗口免重启热修复（X11 可达时）：`xdotool windowactivate <UE窗口ID>; xdotool key grave; xdotool type 'r.VSync 0'; xdotool key Return`；
+- 验收：45s/1334 tick 跳变 0 次、dt 尖峰消失。
+- 兜底：若出现撕裂，改回 `bUseVSync=True` + `FrameRateLimit=60`。

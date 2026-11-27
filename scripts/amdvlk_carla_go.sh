@@ -68,15 +68,20 @@ else
     # 覆写 GameUserSettings.ini（UE -game 的窗口大小/全屏模式只认这里；
     # 实测 -resx/-resy 命令行被忽略：日志 "failed to resolve 3840" + r.setres:1280x720）
     # FullscreenMode: 0=真全屏(覆盖整屏含顶栏, 平铺) 1=无边框全屏(受 GNOME 工作区约束会留边) 2=窗口化
-    # VSync 开：锁显示器相位。帧率上限 30：4K Low 实测 GPU 只能跑 ~57fps 撑不满
-    # 60Hz 的 60fps，周期性丢一帧 = 肉眼可见的 judder（微抖）。锁 30fps 是 60Hz 的
-    # 整因子，每帧恰好显示 2 次刷新，节奏完美均匀——流畅感不如 60 但绝对不抖。
-    # GPU 升级或降分辨率后若想跑满 60，把 30 改回 60 即可。
+    # VSync 关 + 帧率上限 30（2026-11-28 定稿）：本机 59.96Hz 显示器上
+    # bUseVSync=True 时 server 的 dt 会在 0.0333s（2 个 VSync）与 0.04~0.05s
+    # （丢一个 VSync）之间量化跳变；而 spectator 跟随用「一 tick 速度外推」，
+    # 相机位移 = v*(2*dt[i-1]-dt[i-2])、车位移 = v*dt[i]，dt 一跳两者立刻失配
+    # → 画面里车每 ~1s 前后硬跳 ±0.1~0.22m（RPC 逐 tick 实测 47 次/45s，dv=0、
+    # 加速度为 0，跳变与 dt 尖峰严格同步）。关 VSync 后 FrameRateLimit=30 由
+    # 定时器控制，dt 连续分布、不再量化跳变，抖动随之消失。
+    # 若关 VSync 后出现画面撕裂，可改回 True 并把 FrameRateLimit 提到 60
+    # （需 GPU 富余；SP=50 时 4K Low 实测 ~57fps 勉强够）。
     # UE 退出时会回写本文件，故每次启动前都覆写。
     cat > "$GUS" << INI
 ;METADATA=(Diff=true, UseCommands=true)
 [/Script/Engine.GameUserSettings]
-bUseVSync=True
+bUseVSync=False
 bUseDynamicResolution=False
 ResolutionSizeX=$RESX
 ResolutionSizeY=$RESY
@@ -100,7 +105,7 @@ LastUserConfirmedDesiredScreenHeight=$RESY
 LastRecommendedScreenWidth=-1.000000
 LastRecommendedScreenHeight=-1.000000
 INI
-    echo "[go] GameUserSettings.ini 已覆写: ${RESX}x${RESY} 真全屏(平铺) + VSync + 30fps 上限"
+    echo "[go] GameUserSettings.ini 已覆写: ${RESX}x${RESY} 真全屏(平铺) + VSync关 + 30fps 上限(定时器,消除dt量化跳变)"
 
     # 标准配方（已对照官方文档/Skills run-carla-ue58-server 2026-11-27）:
     #   SDL_VIDEODRIVER=x11 强制 X11 后端（默认 Wayland 原生窗口不受 X 管理员全屏

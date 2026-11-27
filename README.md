@@ -252,11 +252,13 @@ Medium 观感更好且代价不大，值得试。Epic 以下档位强制关闭 c
 
 ---
 
-## 9. 最终稳定态（2026-11-28 00:41 定案）与资源占用
+## 9. 最终稳定态（2026-11-28 01:05 定案）与资源占用
 
-**窗口演示的终态配置**：AMDVLK + `SDL_VIDEODRIVER=x11` + 4K 无边框全屏 + `-quality-level=Low` + `r.ScreenPercentage=50` + `FrameRateLimit=30` + `bUseVSync=True` + VSM 8192 页。
+**窗口演示的终态配置**：AMDVLK + `SDL_VIDEODRIVER=x11` + 4K 无边框全屏 + `-quality-level=Low` + `r.ScreenPercentage=50` + `FrameRateLimit=30` + **`bUseVSync=False`** + VSM 8192 页。
 
-**跟随相机终态（demo_show.py v8）**：每个 server tick 主循环内**只写一个** `spectator.set_transform`（无线程、无 HUD RPC 争用），位姿取自 `WorldSnapshot.find(ego.id)` 单源、速度外推一 tick、传送滤波兜底。这一版本容器侧原子快照验收 **12s/361 tick，前向误差 std=0.0000m、>8cm 跳变 0 次**——车辆前后抖动彻底归零。
+> **为什么 VSync 必须关（11-28 新增，曾被误判为 v8 已零抖动）**：在 59.96Hz 屏上 `bUseVSync=True` + 30fps 会把 server 的 dt 量化成 33ms/50ms 两档（丢一个 VSync 就跳到 50ms）。跟随相机用一 tick 速度外推，相机位移 `v*(2*dt[i-1]-dt[i-2])` 与车位移 `v*dt[i]` 在 dt 跳变时立刻失配，画面里车每约 1 秒前后硬跳 ±0.1~0.22m（RPC 逐 tick 实测 47 次/45s）。关 VSync 后帧率上限由 UE 定时器控制、dt 连续分布，**同一窗口热下发 `r.VSync 0` 后 45s/1334 tick 跳变 0 次**。若出现画面撕裂，可退回 `bUseVSync=True` 并把上限提到 60fps（需 GPU 富余）。
+
+**跟随相机终态（demo_show.py v8）**：每个 server tick 主循环内**只写一个** `spectator.set_transform`（无线程、无 HUD RPC 争用），位姿取自 `WorldSnapshot.find(ego.id)` 单源、速度外推一 tick、传送滤波兜底。配合 `bUseVSync=False` 后容器侧原子快照验收 **45s/1334 tick，前向跳变 0 次**——车辆前后抖动彻底归零。
 
 **演示命令**（server 已运行时，只需客户端）：
 ```bash
