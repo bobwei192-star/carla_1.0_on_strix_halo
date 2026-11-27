@@ -39,4 +39,4 @@ grep -A8 '\[ShadowQuality@0\]' "$ROOT/carla/Unreal/CarlaUnreal/Config/DefaultSca
   echo "[setup] 请手动把 DefaultScalability.ini 的 [ShadowQuality@0] MaxPhysicalPages 改成 8192（见 config/DefaultScalability.ini）"
 
 echo "[setup] 完成。重启后验证内核参数，然后运行："
-echo "  bash $ROOT/carla-src/amdvlk_carla_go.sh 600 1 3840 2160 Low"
+echo "  bash $ROOT/amdvlk_carla_go.sh 600 1 3840 2160 Low"
