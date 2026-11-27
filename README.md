@@ -269,7 +269,7 @@ pkill -f demo_show; sleep 1
 
 **上游提交状态**（2026-11-28）：
 - CARLA issue #10408（Linux Wayland 窗口行为损坏）、#10409（MegaLights 无 RT 平台红字）已提交；误建的测试 issue #10407 已关闭。
-- Mesa RADV gfx1151 hang issue：草稿 `docs/12-mesa-issue-draft.md` 就绪，PAT 失效（401），需新 token 后提交。
+- Mesa RADV gfx1151 hang issue → **gitlab.freedesktop.org/mesa/mesa#17036**（已提交，证据见 `docs/12-mesa-issue-draft.md`）。
 - PR #70（CarlaUnreal/UnrealEngine）主体已合入；VSM direct-dispatch 无效 workaround 已不在该 PR（diff 仅 ShaderPrint.ush）。
 
 **仓库结构**：`scripts/`（一键设置 + 启动 + 演示/采集脚本）、`config/`（Scalability 配置）、`docs/`（incident-log 全量问题档案、troubleshooting、resource-usage、Mesa issue 草稿、上游 PR/issue 清单）。

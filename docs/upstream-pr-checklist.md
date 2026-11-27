@@ -104,6 +104,6 @@ Wayland issue（清单 ③）不受影响，仍待提交。
 ### 更新（2026-11-28 00:45）：实际提交状态
 - ✅ **③ Wayland issue → github.com/carla-simulator/carla#10408**（已提交）
 - ✅ **④ MegaLights issue → github.com/carla-simulator/carla#10409**（已提交，含 dummy cvar 附注 ⑦）
-- ⚠️ **① Mesa issue**：草稿就绪；历史 PAT 已失效（GitLab API 401），需用户提供新 PAT 后提交
+- ✅ **① Mesa issue → gitlab.freedesktop.org/mesa/mesa#17036**（https://gitlab.freedesktop.org/mesa/mesa/-/work_items/17036，已提交）
 - ✅ **② PR #70**：API 确认 diff 仅 `Engine/Shaders/Private/ShaderPrint.ush`（9+/1-），VSM workaround 已不在 PR 中，无需额外收尾
 - 误建的测试 issue #10407 已关闭（诊断 token 权限时产生）
