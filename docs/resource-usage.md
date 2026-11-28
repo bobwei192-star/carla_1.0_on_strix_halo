@@ -3,8 +3,15 @@
 ## 测试场景
 - 宿主机：AMD Ryzen AI Max+ 395（Strix Halo / gfx1151 / Radeon 8060S），128 GiB 统一内存，32 逻辑核
 - CARLA 1.0 server：AMDVLK 2025.Q2.1，Town10HD_Opt，3840×2160 无边框全屏，`-quality-level=Low`
-- 关键配置：`r.ScreenPercentage=50`（内部 ~1080p 渲染放大到 4K）、`FrameRateLimit=30`、`bUseVSync=True`、`SDL_VIDEODRIVER=x11`、VSM Low 档 8192 页
-- 客户端：`/home/aaa/miniconda3/bin/python demo_show.py 600`（TrafficManager autopilot，车顶 HUD 关闭）
+- 关键配置：`r.ScreenPercentage=50`（内部 ~1080p 渲染放大到 4K）、`FrameRateLimit=30`、`bUseVSync=False`（11-28 定稿，关 VSync 消除 dt 量化跳变）、`SDL_VIDEODRIVER=x11`、VSM Low 档 8192 页
+- 客户端（即下列资源数据对应的 demo 命令）：
+  ```bash
+  pkill -f demo_show; sleep 1
+  /home/aaa/miniconda3/bin/python /home/aaa/carla-src/carla_demo/demo_show.py 600
+  ```
+  （TrafficManager autopilot，车顶 HUD 关闭）
+
+> **数据说明**：下列数值为该 demo 命令运行（server + 客户端同时工作）时的 10 秒连续实测，采样时配置为 `bUseVSync=True`。11-28 定稿改为 `bUseVSync=False` 只改变帧节奏控制方式（定时器代替 VSync 锁相），渲染负载、GPU 占用、功耗、内存量级不变；抖动随之归零。当前 server 已停止，无法即时重采，数据为本次战役实测存档。
 
 ## 实测数据（10 秒连续采样，容器侧读取宿主 sysfs，值代表整机）
 | 指标 | 实测 | 说明 |

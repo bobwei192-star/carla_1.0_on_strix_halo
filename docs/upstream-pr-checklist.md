@@ -56,6 +56,8 @@
 
 ## 建议提（次要，低开销）
 
+> **收尾状态（11-28 12:10 核实）**：④ 已提交 → carla#10409（含 ⑦ dummy cvar 附注）；⑤ RADV trace 插桩并入 Mesa#17036 证据链、不单独开 MR；⑥ gfx1151 pipe reset 观察报告并入 Mesa#17036、不单独开线程；③b frame pacing 不提（属正确行为）。**以下各节为当时的决策依据存档，均已处置，无遗留待提交项。**
+
 ### ④ CARLA 仓库 issue：无硬件光追平台 MegaLights 红字警告
 - **目标仓库**：github.com/carla-simulator/carla
 - **内容**：CARLA 1.0 `Unreal/CarlaUnreal/Config/DefaultEngine.ini` 默认
@@ -99,7 +101,7 @@
 社区核查确认：demo 客户端间歇全零位姿 = [carla#1424](https://github.com/carla-simulator/carla/issues/1424)
 官方设计行为（get_transform 返回上一 tick 客户端快照缓存，新 spawn actor 返回默认态）。
 已在 demo v3.2 用官方惯例 wait_for_tick + 传送滤波兜底。**不重复提 issue**；
-Wayland issue（清单 ③）不受影响，仍待提交。
+Wayland issue（清单 ③）不受影响，已提交 → carla#10408。
 
 ### 更新（2026-11-28 00:45）：实际提交状态
 - ✅ **③ Wayland issue → github.com/carla-simulator/carla#10408**（已提交）

@@ -12,7 +12,7 @@
 - **证据**：RADV 提交级插桩（ac_drm_cs_submit_raw2）——提交正常返回，`-ETIME` + emitted−signaled=2 在途提交楔死；420 条 trace 全部正常 → bug 在 CP/ring-fetch/固件层。挂点漂移：GPUSceneUpdate / RayTracingScene / SceneCapture AsyncCompute / Graphics FX。
 - **排除项**：VSM/Lumen/RT/async compute/timeline semaphore 等 UE 侧 15+ 项实验；上游 gc_11_5_1 固件 5 文件升级（无效）；radv_wait_for_vm_map_updates 旋钮（无效）；lavapipe 软件 Vulkan（缺 SM6 Profile 必需特性，枚举即拒）。
 - **修复（绕过）**：**AMDVLK 2025.Q2.1**，per-app `VK_ICD_FILENAMES=/etc/vulkan/icd.d/amd_icd64.json`。窗口 793+ tick 零 hang、camera 出图、端到端全绿。
-- **定性**：RADV gfx1151 特有底层 bug，与 mesa#13411/#16943 机制均不同。Mesa issue 草稿 `docs/12-mesa-issue-draft.md`（最强证据形态），待提交。
+- **定性**：RADV gfx1151 特有底层 bug，与 mesa#13411/#16943 机制均不同。Mesa issue **已提交：gitlab.freedesktop.org/mesa/mesa#17036**（https://gitlab.freedesktop.org/mesa/mesa/-/work_items/17036，最强证据形态见 `docs/12-mesa-issue-draft.md`）。
 - **注意**：`r.Vulkan.AllowAsyncCompute=0` 实测**有害**（frame 4-7 即死），勿加。
 
 ### A2. MES reset 全失败 → gpu_recovery=1 兜底
@@ -75,7 +75,7 @@
 - **根因**：GNOME Wayland 会话下 UE 窗口为 Wayland 原生 → 不受 X 全屏管理，FullscreenMode 被无声回退。
 - **修复**：启动环境 `SDL_VIDEODRIVER=x11`。**验收标志：`xwininfo -root -tree | grep -i unreal` 能看到窗口**。
 - **佐证**：Epic 官方 tracker FORT-1004112 确认 UE SDL Wayland "unusable"。
-- **上游动作**：CARLA issue 待提（清单 ③）——Ubuntu 24.04（官方支持 OS）默认 Wayland 会话下 RES=/FULLSCREEN= 全部失效。
+- **上游动作**：已提交 carla#10408（清单 ③）——Ubuntu 24.04（官方支持 OS）默认 Wayland 会话下 RES=/FULLSCREEN= 全部失效。
 
 ---
 
@@ -130,7 +130,7 @@
 ### E5. MegaLights 红字警告
 - **现象**：窗口上方红字 "MegaLights is enabled, but has no ray tracing data"。
 - **根因**：DefaultEngine.ini 默认 `r.MegaLights.EnableForProject=True`，无 HW RT 平台只刷警告零收益。
-- **修复**：改 False。建议提 CARLA issue（清单 ④）。
+- **修复**：改 False。已提交 carla#10409（清单 ④，含 dummy cvar 附注）。
 
 ---
 
@@ -141,13 +141,15 @@
 - **zenity 弹窗诊断法**：UE 早期致命错误不进 stdout，靠截图抓弹窗。
 - **诊断脚本**（容器可直接跑，走 RPC）：帧节奏采样（snapshot delta_seconds）、瓶颈隔离三相位、spectator 位姿序列、ego 物理平滑度——全部收录于 troubleshooting.md。
 
-## 遗留事项（截至 11-28 00:00）
-1. Mesa issue 提交（等 GitLab 登录 bobwei192）——证据最强形态在 docs/12-mesa-issue-draft.md
-2. CARLA Wayland issue（清单 ③）——X11 后端验证 ✓ 已取得，待补 `-ResX=` 等号形式测试
-3. PR #70 收尾（VSM direct-dispatch 改动移除）
-4. 4K 下 Medium 画质 / SP=60 观感对比；60fps 需 1440p 窗口
+## 遗留事项（截至 11-28 12:10 收尾核对）
+1. ✅ Mesa issue 已提交 → mesa#17036（原"等 GitLab 登录"已完成）
+2. ✅ CARLA Wayland issue 已提交 → carla#10408（X11 后端验证 ✓ 已取得；`-ResX=` 等号形式测试为非阻塞补充，不阻塞提交）
+3. ✅ MegaLights issue 已提交 → carla#10409；误建测试 issue #10407 已关闭
+4. ✅ PR #70 diff 复核：仅含 ShaderPrint.ush，VSM direct-dispatch workaround 已不在其中，无需收尾
+5. ✅ 抖动终局：v8 单写手 + 关 VSync 消除 dt 量化跳变（`bUseVSync=False`，45s/1334 tick 跳变 0 次）
+6. 可选优化（非阻塞）：4K 下 Medium 画质 / SP=60 观感对比；60fps 需 1440p 窗口
 
-### E5. v4 外推反而加重前后抖动（2026-11-28 00:08，未定案，交接中）
+### E5. v4 外推反而加重前后抖动（2026-11-28 00:08，已定案：见 E7 / troubleshooting.md 第 7 节）
 - **现象**：v4（wait_for_tick + 一 tick 速度外推）后用户实测前后抖动比 v3.2 更厉害。
 - **证据**：容器 8s 高频采样——前后误差两离散值硬跳（多数 tick 精确 0.00，周期 ~0.5s
   跳 -0.28m = 恰一 tick 位移 8.3×0.0333）；侧向/高度近零。容器只读 10s：快照流干净
